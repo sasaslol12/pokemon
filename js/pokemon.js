@@ -31,6 +31,7 @@ class PokemonService {
                 },
                 moves: data.moves.slice(0, 10).map(m => m.move.name),
                 sprite: data.sprites.front_default,
+                shinySprite: data.sprites.front_shiny,
                 officialArt: data.sprites.other['official-artwork'].front_default || data.sprites.front_default,
             };
 
@@ -80,18 +81,18 @@ class PokemonService {
         // IV (Individual Values) und EV (Effort Values) für Variation
         const ivsDefault = { hp: 15, attack: 15, defense: 15, spAtk: 15, spDef: 15, speed: 15 };
         const evsDefault = { hp: 0, attack: 0, defense: 0, spAtk: 0, spDef: 0, speed: 0 };
-        
+
         const ivs = { ...ivsDefault, ...iv };
         const evs = { ...evsDefault, ...ev };
 
         const stats = {};
-        
+
         // HP: ((2 * Base + IV + (EV / 4)) * Level / 100) + Level + 5
         stats.hp = Math.floor(((2 * basePokemon.baseStats.hp + ivs.hp + evs.hp / 4) * level / 100) + level + 5);
-        
+
         // Andere Stats: ((2 * Base + IV + (EV / 4)) * Level / 100) + 5
         const calcStat = (base) => Math.floor(((2 * base + ivs.attack + evs.attack / 4) * level / 100) + 5);
-        
+
         stats.attack = calcStat(basePokemon.baseStats.attack);
         stats.defense = calcStat(basePokemon.baseStats.defense);
         stats.spAtk = calcStat(basePokemon.baseStats.spAtk);

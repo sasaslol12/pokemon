@@ -198,6 +198,54 @@ class UI {
                         </div>
                     </div>
                 </div>
+
+                <!-- Pokemon Detail Modal -->
+                <div id="pokemonModal" class="modal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2 id="modalPokemonName">Pokemon</h2>
+                            <button class="close-btn" onclick="ui.closePokemonDetail()">&times;</button>
+                        </div>
+                        
+                        <div class="sprite-comparison">
+                            <div class="sprite-container">
+                                <h4>Normal</h4>
+                                <img id="normalSprite" src="" alt="Normal">
+                            </div>
+                            <div class="sprite-container">
+                                <h4>✨ Shiny</h4>
+                                <img id="shinySprite" src="" alt="Shiny">
+                            </div>
+                        </div>
+
+                        <div class="pokemon-detail-stats">
+                            <div class="detail-stat">
+                                <div class="detail-stat-label">HP</div>
+                                <div class="detail-stat-value" id="statHP">-</div>
+                            </div>
+                            <div class="detail-stat">
+                                <div class="detail-stat-label">Angriff</div>
+                                <div class="detail-stat-value" id="statAttack">-</div>
+                            </div>
+                            <div class="detail-stat">
+                                <div class="detail-stat-label">Verteidigung</div>
+                                <div class="detail-stat-value" id="statDefense">-</div>
+                            </div>
+                            <div class="detail-stat">
+                                <div class="detail-stat-label">Sp.Atk</div>
+                                <div class="detail-stat-value" id="statSpAtk">-</div>
+                            </div>
+                            <div class="detail-stat">
+                                <div class="detail-stat-label">Sp.Def</div>
+                                <div class="detail-stat-value" id="statSpDef">-</div>
+                            </div>
+                            <div class="detail-stat">
+                                <div class="detail-stat-label">Speed</div>
+                                <div class="detail-stat-value" id="statSpeed">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         `;
 
@@ -223,6 +271,7 @@ class UI {
 
                 const card = document.createElement('div');
                 card.className = 'pokemon-card';
+                card.style.cursor = 'pointer';
                 card.innerHTML = `
                     <div class="pokemon-id">#${pokemonData.id}</div>
                     <img src="${pokemonData.sprite}" alt="${pokemonData.name}" class="pokemon-sprite">
@@ -234,12 +283,49 @@ class UI {
                     </div>
                 `;
 
+                // Click-Handler für Detail-View
+                card.addEventListener('click', () => {
+                    this.showPokemonDetail(pokemonData);
+                });
+
                 container.appendChild(card);
             }
         } catch (error) {
             console.error('Fehler beim Laden der Pokédex:', error);
             container.innerHTML = '<div class="empty-message">Fehler beim Laden der Pokémon!</div>';
         }
+    }
+
+    showPokemonDetail(pokemonData) {
+        const modal = document.getElementById('pokemonModal');
+
+        // Befülle Modal mit Daten
+        document.getElementById('modalPokemonName').textContent = pokemonData.name;
+        document.getElementById('normalSprite').src = pokemonData.sprite;
+        document.getElementById('shinySprite').src = pokemonData.shinySprite || pokemonData.sprite;
+
+        // Base Stats
+        document.getElementById('statHP').textContent = pokemonData.baseStats.hp;
+        document.getElementById('statAttack').textContent = pokemonData.baseStats.attack;
+        document.getElementById('statDefense').textContent = pokemonData.baseStats.defense;
+        document.getElementById('statSpAtk').textContent = pokemonData.baseStats.spAtk;
+        document.getElementById('statSpDef').textContent = pokemonData.baseStats.spDef;
+        document.getElementById('statSpeed').textContent = pokemonData.baseStats.speed;
+
+        // Zeige Modal
+        modal.classList.add('active');
+
+        // Close-Button für außerhalb des Modals
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                this.closePokemonDetail();
+            }
+        });
+    }
+
+    closePokemonDetail() {
+        const modal = document.getElementById('pokemonModal');
+        modal.classList.remove('active');
     }
 
     showTeamScreen() {
