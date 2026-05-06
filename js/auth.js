@@ -103,15 +103,34 @@ class Auth {
 
     async loginWithGoogle() {
         try {
+            // Dynamische Redirect-URL für GitHub Pages & lokale Entwicklung
+            let redirectUrl = window.location.origin;
+
+            // Für GitHub Pages: z.B. https://username.github.io/pkmn/
+            if (window.location.pathname !== '/') {
+                const pathParts = window.location.pathname.split('/').filter(p => p);
+                if (pathParts.length > 0) {
+                    redirectUrl = window.location.origin + '/' + pathParts[0] + '/';
+                }
+            }
+
+            // Für lokale Entwicklung mit Port
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                redirectUrl = `http://${window.location.hostname}:${window.location.port || 8000}`;
+            }
+
+            console.log('Google OAuth Redirect URL:', redirectUrl);
+
             const { data, error } = await sbClient.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    redirectTo: window.location.origin
+                    redirectTo: redirectUrl
                 }
             });
             if (error) throw error;
         } catch (error) {
             ui.showErrorMessage('Google Login fehlgeschlagen: ' + error.message);
+            console.error('Google OAuth Error:', error);
         }
     }
 
