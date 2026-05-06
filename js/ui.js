@@ -33,6 +33,13 @@ class UI {
                         <button class="btn-primary" onclick="ui.handleLogin()">Anmelden</button>
                         <button class="btn-secondary" onclick="ui.toggleSignup()">Registrieren</button>
                     </div>
+
+                    <div style="margin-top: 20px; border-top: 1px solid #e0e0e0; padding-top: 20px;">
+                        <p style="text-align: center; color: #999; margin-bottom: 10px; font-size: 14px;">oder</p>
+                        <button class="btn-secondary" onclick="auth.loginWithGoogle()" style="background: white; border: 2px solid #4285F4; color: #4285F4; font-weight: 600;">
+                            🔐 Mit Google anmelden
+                        </button>
+                    </div>
                 </div>
             </div>
         `;
@@ -77,6 +84,94 @@ class UI {
             button.textContent = 'Registrieren';
             document.querySelector('.btn-primary').onclick = () => this.handleLogin();
             document.querySelector('.btn-primary').textContent = 'Anmelden';
+        }
+    }
+
+    showUsernameScreen() {
+        this.currentScreen = 'username';
+        this.app.innerHTML = `
+            <div class="auth-screen">
+                <h1>👤 Wähle deinen Namen</h1>
+                <p>Dieser Name wird von anderen Trainern sichtbar sein</p>
+                
+                <div id="usernameForm" style="margin-top: 30px;">
+                    <div class="form-group">
+                        <label>Trainer Name</label>
+                        <input type="text" id="newUsername" placeholder="3-14 Zeichen (A-Z, 0-9)" maxlength="14" autofocus>
+                        <small style="color: #999; margin-top: 5px; display: block;">
+                            ✓ 3-14 Zeichen | ✓ Nur Buchstaben & Zahlen
+                        </small>
+                    </div>
+
+                    <div id="feedback" style="margin: 15px 0; display: none; padding: 10px; border-radius: 8px;">
+                    </div>
+
+                    <div class="button-group" style="margin-top: 30px;">
+                        <button class="btn-primary" onclick="ui.handleUsernameSubmit()">Namen bestätigen</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Enter-Taste Unterstützung
+        document.getElementById('newUsername').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                this.handleUsernameSubmit();
+            }
+        });
+
+        // Live-Feedback beim Tippen
+        document.getElementById('newUsername').addEventListener('input', (e) => {
+            const username = e.target.value;
+            const feedback = document.getElementById('feedback');
+
+            if (username.length === 0) {
+                feedback.style.display = 'none';
+                return;
+            }
+
+            if (username.length < 3) {
+                feedback.style.display = 'block';
+                feedback.style.background = '#fff3cd';
+                feedback.style.color = '#856404';
+                feedback.textContent = `⚠️ Mindestens ${3 - username.length} Zeichen mehr nötig`;
+            } else if (username.length > 14) {
+                feedback.style.display = 'block';
+                feedback.style.background = '#f8d7da';
+                feedback.style.color = '#721c24';
+                feedback.textContent = `❌ Maximal 14 Zeichen erlaubt`;
+            } else if (!/^[a-zA-Z0-9]*$/.test(username)) {
+                feedback.style.display = 'block';
+                feedback.style.background = '#f8d7da';
+                feedback.style.color = '#721c24';
+                feedback.textContent = `❌ Nur Buchstaben & Zahlen erlaubt`;
+            } else {
+                feedback.style.display = 'block';
+                feedback.style.background = '#d4edda';
+                feedback.style.color = '#155724';
+                feedback.textContent = `✓ ${username.length}/14 Zeichen`;
+            }
+        });
+    }
+
+    async handleUsernameSubmit() {
+        const username = document.getElementById('newUsername').value.trim();
+
+        if (username.length < 3 || username.length > 14 || !/^[a-zA-Z0-9]*$/.test(username)) {
+            this.showErrorMessage('Username: 3-14 Zeichen, nur Buchstaben & Zahlen!');
+            return;
+        }
+
+        // Disable Button während Verarbeitung
+        const btn = document.querySelector('.btn-primary');
+        btn.disabled = true;
+        btn.textContent = 'Wird überprüft...';
+
+        const success = await auth.setUsername(username);
+
+        if (!success) {
+            btn.disabled = false;
+            btn.textContent = 'Namen bestätigen';
         }
     }
 

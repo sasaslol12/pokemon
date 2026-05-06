@@ -35,7 +35,7 @@ class BattleSystem {
                 battle.currentEnemyPokemon,
                 move
             );
-            
+
             battle.enemyHp = Math.max(0, battle.enemyHp - damage);
             log.push(`${battle.currentPlayerPokemon.name} nutzt ${move.name}! ${damage} Schaden!`);
         } else if (actionType === 'switch') {
@@ -66,7 +66,7 @@ class BattleSystem {
             const enemyMove = battle.currentEnemyPokemon.moveDetails[
                 Math.floor(Math.random() * battle.currentEnemyPokemon.moveDetails.length)
             ];
-            
+
             const damage = this.calculateDamage(
                 battle.currentEnemyPokemon,
                 battle.currentPlayerPokemon,
@@ -119,7 +119,7 @@ class BattleSystem {
 
         // Vereinfachte Schadensberechnung
         let baseDamage = ((2 * level / 5 + 2) * move.power * (attack / defense) / 50) + 2;
-        
+
         // STAB (Same Type Attack Bonus): 1.5x wenn Typ passt
         if (attacker.types.includes(move.type)) {
             baseDamage *= 1.5;
@@ -155,7 +155,7 @@ class BattleSystem {
 
         // Speichere in Datenbank
         await this.saveBattleResult(playerWon);
-        
+
         this.currentBattle = null;
         ui.showGameScreen();
     }
@@ -165,12 +165,12 @@ class BattleSystem {
         while (pokemon.exp >= requiredExp && pokemon.level < GAME_CONFIG.MAX_LEVEL) {
             pokemon.exp -= requiredExp;
             pokemon.level++;
-            
+
             // Recalculate Stats
             const basePokemon = await pokemonService.getPokemon(pokemon.name);
             const newStats = pokemonService.calculateStats(basePokemon, pokemon.level, pokemon.iv, pokemon.ev);
             const hpIncrease = newStats.hp - pokemon.hp;
-            
+
             pokemon.hp = newStats.hp;
             pokemon.maxHp = newStats.hp;
             pokemon.attack = newStats.attack;
@@ -185,7 +185,7 @@ class BattleSystem {
 
     async saveBattleResult(playerWon) {
         try {
-            await supabase.from('battle_logs').insert({
+            await sbClient.from('battle_logs').insert({
                 player_id: auth.getCurrentUser().id,
                 opponent: 'wild' || 'trainer',
                 result: playerWon ? 'win' : 'loss',

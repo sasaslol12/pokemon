@@ -3,8 +3,8 @@
 const SUPABASE_URL = 'https://vcpmztnbklgezqrxhyqt.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZjcG16dG5ia2xnZXpxcnhoeXF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwNzUwOTIsImV4cCI6MjA5MzY1MTA5Mn0.XuLJzg7gG4aLz3wMZJjb1tzt9G66PUnB5UEINfTfQxQ';
 
-// Supabase Client
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// Supabase Client - initialisiert von der window.supabase Library
+const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // API Configuration
 const POKEAPI_URL = 'https://pokeapi.co/api/v2';

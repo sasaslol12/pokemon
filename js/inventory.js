@@ -15,7 +15,7 @@ class Inventory {
 
     async loadPlayerTeam() {
         try {
-            const { data, error } = await supabase
+            const { data, error } = await sbClient
                 .from('player_pokemon')
                 .select('*')
                 .eq('player_id', auth.getCurrentUser().id);
@@ -71,7 +71,7 @@ class Inventory {
 
             const stats = pokemonService.calculateStats(basePokemon, level, iv, {});
 
-            const { data, error } = await supabase
+            const { data, error } = await sbClient
                 .from('player_pokemon')
                 .insert({
                     player_id: auth.getCurrentUser().id,
@@ -123,7 +123,7 @@ class Inventory {
 
     async updateTeamPokemon(pokemon) {
         try {
-            await supabase
+            await sbClient
                 .from('player_pokemon')
                 .update({
                     level: pokemon.level,
@@ -185,7 +185,7 @@ class Inventory {
             if (!exists) {
                 this.pokedex.push({ id: pokemonId, name: pokemonName, caughtAt: new Date() });
 
-                await supabase
+                await sbClient
                     .from('pokedex_entries')
                     .insert({
                         player_id: auth.getCurrentUser().id,
