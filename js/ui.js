@@ -178,38 +178,68 @@ class UI {
     showGameScreen() {
         this.currentScreen = 'game';
         const playerData = auth.getPlayerData();
-        const team = inventory.getTeam();
 
         this.app.innerHTML = `
             <div class="game-screen">
                 <div class="header">
-                    <h1>⚡ Pokémon Browser</h1>
+                    <h1>⚡ Pokédex</h1>
                     <div class="user-info">
                         <span>👤 ${playerData?.username || 'Trainer'}</span>
-                        <span>📊 Level ${playerData?.level || 1}</span>
-                        <span>🎯 Pokébälle: ${inventory.getInventory().pokeballs}</span>
                         <button class="logout-btn" onclick="auth.logout()">Abmelden</button>
                     </div>
                 </div>
 
-                <div class="main-content">
-                    <div class="sidebar">
-                        <h2>Menu</h2>
-                        <div class="menu-item active" onclick="ui.showTeamScreen()">👥 Mein Team</div>
-                        <div class="menu-item" onclick="ui.showPokedexScreen()">📖 Pokédex</div>
-                        <div class="menu-item" onclick="ui.showInventoryScreen()">🎒 Inventar</div>
-                        <div class="menu-item" onclick="ui.showExploreScreen()">🗺️ Erkunden</div>
-                        <div class="menu-item" onclick="ui.showStatsScreen()">📈 Statistiken</div>
-                    </div>
-
-                    <div class="content" id="content">
-                        <!-- Inhalte werden dynamisch geladen -->
+                <div class="pokedex-container">
+                    <div class="pokedex-title">Alle Pokémon</div>
+                    <div id="pokedex-list" class="pokedex-grid">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <p>Pokémon werden geladen...</p>
+                        </div>
                     </div>
                 </div>
             </div>
         `;
 
-        this.showTeamScreen();
+        this.loadPokedexList();
+    }
+
+    async loadPokedexList() {
+        const container = document.getElementById('pokedex-list');
+
+        try {
+            // Lade erste 151 Pokémon (Gen 1)
+            const response = await axios.get('https://pokeapi.co/api/v2/pokemon?limit=151&offset=0');
+            const pokemonList = response.data.results;
+
+            container.innerHTML = '';
+
+            for (let pokemon of pokemonList) {
+                const pokemonData = await pokemonService.getPokemon(pokemon.name);
+
+                const types = pokemonData.types.map(t =>
+                    `<div class="type-badge ${t}">${t}</div>`
+                ).join('');
+
+                const card = document.createElement('div');
+                card.className = 'pokemon-card';
+                card.innerHTML = `
+                    <div class="pokemon-id">#${pokemonData.id}</div>
+                    <img src="${pokemonData.sprite}" alt="${pokemonData.name}" class="pokemon-sprite">
+                    <div class="pokemon-info">
+                        <h3>${pokemonData.name}</h3>
+                        <div class="pokemon-types">
+                            ${types}
+                        </div>
+                    </div>
+                `;
+
+                container.appendChild(card);
+            }
+        } catch (error) {
+            console.error('Fehler beim Laden der Pokédex:', error);
+            container.innerHTML = '<div class="empty-message">Fehler beim Laden der Pokémon!</div>';
+        }
     }
 
     showTeamScreen() {
@@ -435,16 +465,8 @@ class UI {
         if (this.messageTimeout) clearTimeout(this.messageTimeout);
 
         const messageEl = document.createElement('div');
-        messageEl.className = type;
+        messageEl.className = `${type} message-fixed`;
         messageEl.textContent = message;
-        messageEl.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-            min-width: 300px;
-            animation: slideIn 0.3s ease-out;
-        `;
 
         document.body.appendChild(messageEl);
 
