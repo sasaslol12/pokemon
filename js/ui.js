@@ -175,6 +175,75 @@ class UI {
         }
     }
 
+    showStarterScreen() {
+        this.currentScreen = 'starter';
+        this.app.innerHTML = `
+            <div class="auth-screen">
+                <h1>🎮 Wähle dein Starter-Pokémon</h1>
+                <p>Dies wird dein erstes Pokémon auf Level 5</p>
+                
+                <div id="starterGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; margin-top: 25px;">
+                    <!-- Starters werden hier eingefügt -->
+                </div>
+            </div>
+        `;
+
+        this.loadStarterGrid();
+    }
+
+    async loadStarterGrid() {
+        const grid = document.getElementById('starterGrid');
+        grid.innerHTML = '';
+
+        // Gruppiere Starters nach Generation
+        const byGen = {};
+        for (let starter of GAME_CONFIG.STARTER_POKEMON) {
+            if (!byGen[starter.gen]) {
+                byGen[starter.gen] = [];
+            }
+            byGen[starter.gen].push(starter.name);
+        }
+
+        // Zeige alle Starters
+        for (let starter of GAME_CONFIG.STARTER_POKEMON) {
+            const pokemonData = await pokemonService.getPokemon(starter.name);
+
+            const card = document.createElement('div');
+            card.className = 'pokemon-card';
+            card.style.cursor = 'pointer';
+            card.innerHTML = `
+                <div style="font-size: 11px; color: #999;">Gen ${starter.gen}</div>
+                <img src="${pokemonData.sprite}" alt="${pokemonData.name}" class="pokemon-sprite">
+                <h3 style="margin: 8px 0;">${pokemonData.name}</h3>
+                <button class="btn-primary" style="width: 100%; padding: 8px; font-size: 12px;">Wählen</button>
+            `;
+
+            card.querySelector('button').addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const btn = e.target;
+                btn.disabled = true;
+                btn.textContent = '...';
+
+                const success = await inventory.addPokemonToTeam(starter.name, GAME_CONFIG.STARTER_LEVEL);
+
+                if (success) {
+                    ui.showSuccessMessage('Starter-Pokémon gewählt!');
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+                    ui.showGameScreen();
+                } else {
+                    btn.disabled = false;
+                    btn.textContent = 'Wählen';
+                }
+            });
+
+            grid.appendChild(card);
+        }
+    }
+
+    async selectStarter(starterName) {
+        // Diese Methode wird nicht mehr verwendet
+    }
+
     showGameScreen() {
         this.currentScreen = 'game';
         const playerData = auth.getPlayerData();
@@ -182,24 +251,41 @@ class UI {
         this.app.innerHTML = `
             <div class="game-screen">
                 <div class="header">
-                    <h1>⚡ Pokédex</h1>
+                    <h1>⚡ Pokémon Sammler</h1>
                     <div class="user-info">
                         <span>👤 ${playerData?.username || 'Trainer'}</span>
                         <button class="logout-btn" onclick="auth.logout()">Abmelden</button>
                     </div>
                 </div>
 
-                <div class="pokedex-container">
-                    <div class="pokedex-title">Alle Pokémon</div>
-                    <div id="pokedex-list" class="pokedex-grid">
-                        <div class="loading">
-                            <div class="spinner"></div>
-                            <p>Pokémon werden geladen...</p>
+                <div class="tabs" style="display: flex; gap: 0; border-bottom: 2px solid #ddd; margin: 20px 20px 0;">
+                    <button id="tab-pokedex" class="tab-btn" style="padding: 12px 20px; border: none; background: none; cursor: pointer; font-size: 16px; color: #666; border-bottom: 3px solid transparent; margin-bottom: -2px;" onclick="ui.switchTab('pokedex')">📖 Pokédex</button>
+                    <button id="tab-inventory" class="tab-btn" style="padding: 12px 20px; border: none; background: none; cursor: pointer; font-size: 16px; color: #666; border-bottom: 3px solid transparent; margin-bottom: -2px;" onclick="ui.switchTab('inventory')">🎒 Inventar</button>
+                </div>
+
+                <!-- Pokédex Tab -->
+                <div id="pokedex-tab" class="tab-content">
+                    <div class="pokedex-container">
+                        <div id="pokedex-list" class="pokedex-grid">
+                            <div class="loading">
+                                <div class="spinner"></div>
+                                <p>Pokémon werden geladen...</p>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Pokemon Detail Modal -->
+                <!-- Inventar Tab -->
+                <div id="inventory-tab" class="tab-content" style="display: none;">
+                    <div id="inventory-list" class="pokedex-grid">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <p>Team wird geladen...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pokemon Detail Modal (Pokédex) -->
                 <div id="pokemonModal" class="modal">
                     <div class="modal-content">
                         <div class="modal-header">
@@ -246,10 +332,86 @@ class UI {
                         </div>
                     </div>
                 </div>
+
+                <!-- Inventory Detail Modal -->
+                <div id="inventoryModal" class="modal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2 id="inventoryModalName">Pokémon</h2>
+                            <button class="close-btn" onclick="ui.closeInventoryDetail()">&times;</button>
+                        </div>
+                        
+                        <div class="sprite-comparison">
+                            <div class="sprite-container">
+                                <img id="invSprite" src="" alt="Pokemon" style="max-width: 200px;">
+                            </div>
+                            <div style="flex: 1;">
+                                <p style="margin: 0 0 5px 0;"><strong>Level</strong>: <span id="invLevel">-</span></p>
+                                <p style="margin: 0 0 10px 0;"><strong>Gefangen am:</strong> <span id="invCaughtDate">-</span></p>
+                                
+                                <h4>Attacken (Level 5):</h4>
+                                <div id="invMovesList" style="list-style: none; padding: 0; margin: 0;">
+                                    <div class="loading"><div class="spinner"></div></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pokemon-detail-stats">
+                            <div class="detail-stat">
+                                <div class="detail-stat-label">HP</div>
+                                <div class="detail-stat-value" id="invStatHP">-</div>
+                            </div>
+                            <div class="detail-stat">
+                                <div class="detail-stat-label">Angriff</div>
+                                <div class="detail-stat-value" id="invStatAttack">-</div>
+                            </div>
+                            <div class="detail-stat">
+                                <div class="detail-stat-label">Verteidigung</div>
+                                <div class="detail-stat-value" id="invStatDefense">-</div>
+                            </div>
+                            <div class="detail-stat">
+                                <div class="detail-stat-label">Sp.Atk</div>
+                                <div class="detail-stat-value" id="invStatSpAtk">-</div>
+                            </div>
+                            <div class="detail-stat">
+                                <div class="detail-stat-label">Sp.Def</div>
+                                <div class="detail-stat-value" id="invStatSpDef">-</div>
+                            </div>
+                            <div class="detail-stat">
+                                <div class="detail-stat-label">Speed</div>
+                                <div class="detail-stat-value" id="invStatSpeed">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         `;
 
-        this.loadPokedexList();
+        this.switchTab('pokedex');
+    }
+
+    switchTab(tabName) {
+        // Verstecke alle Tabs
+        document.getElementById('pokedex-tab').style.display = 'none';
+        document.getElementById('inventory-tab').style.display = 'none';
+
+        // Entferne aktive Klasse von allen Buttons
+        document.getElementById('tab-pokedex').style.borderColor = 'transparent';
+        document.getElementById('tab-pokedex').style.color = '#666';
+        document.getElementById('tab-inventory').style.borderColor = 'transparent';
+        document.getElementById('tab-inventory').style.color = '#666';
+
+        if (tabName === 'pokedex') {
+            document.getElementById('pokedex-tab').style.display = 'block';
+            document.getElementById('tab-pokedex').style.borderColor = '#FF6347';
+            document.getElementById('tab-pokedex').style.color = '#333';
+            this.loadPokedexList();
+        } else {
+            document.getElementById('inventory-tab').style.display = 'block';
+            document.getElementById('tab-inventory').style.borderColor = '#FF6347';
+            document.getElementById('tab-inventory').style.color = '#333';
+            this.loadInventoryTab();
+        }
     }
 
     async loadPokedexList() {
@@ -325,6 +487,106 @@ class UI {
 
     closePokemonDetail() {
         const modal = document.getElementById('pokemonModal');
+        modal.classList.remove('active');
+    }
+
+    async loadInventoryTab() {
+        const container = document.getElementById('inventory-list');
+
+        try {
+            await inventory.loadPlayerTeam();
+            const team = inventory.playerTeam;
+
+            container.innerHTML = '';
+
+            if (team.length === 0) {
+                container.innerHTML = '<div class="empty-message" style="grid-column: 1/-1; text-align: center; padding: 40px 20px;">Du hast noch kein Pokémon!</div>';
+                return;
+            }
+
+            for (let pokemon of team) {
+                const card = document.createElement('div');
+                card.className = 'pokemon-card';
+                card.style.cursor = 'pointer';
+                card.innerHTML = `
+                    <img src="${pokemon.sprite}" alt="${pokemon.name}" class="pokemon-sprite">
+                    <div class="pokemon-info">
+                        <h3>${pokemon.name}</h3>
+                        <div style="font-size: 12px; color: #666;">Level ${pokemon.level}</div>
+                    </div>
+                `;
+
+                // Click-Handler für Detail-View
+                card.addEventListener('click', () => {
+                    this.showInventoryDetail(pokemon);
+                });
+
+                container.appendChild(card);
+            }
+        } catch (error) {
+            console.error('Fehler beim Laden des Inventars:', error);
+            container.innerHTML = '<div class="empty-message">Fehler beim Laden!</div>';
+        }
+    }
+
+    async showInventoryDetail(pokemon) {
+        const modal = document.getElementById('inventoryModal');
+
+        // Befülle Modal mit Daten
+        document.getElementById('inventoryModalName').textContent = pokemon.name;
+        document.getElementById('invSprite').src = pokemon.sprite;
+        document.getElementById('invLevel').textContent = pokemon.level;
+
+        // Formatiere Datum: YYYY-MM-DD
+        const caughtDate = new Date(pokemon.caughtAt);
+        const formattedDate = caughtDate.toISOString().split('T')[0];
+        document.getElementById('invCaughtDate').textContent = formattedDate;
+
+        // Stats
+        document.getElementById('invStatHP').textContent = pokemon.hp;
+        document.getElementById('invStatAttack').textContent = pokemon.attack;
+        document.getElementById('invStatDefense').textContent = pokemon.defense;
+        document.getElementById('invStatSpAtk').textContent = pokemon.spAtk;
+        document.getElementById('invStatSpDef').textContent = pokemon.spDef;
+        document.getElementById('invStatSpeed').textContent = pokemon.speed;
+
+        // Lade Moves für Level 5
+        const movesList = document.getElementById('invMovesList');
+        try {
+            const moves = await pokemonService.getMovesAtLevel(pokemon.name, GAME_CONFIG.STARTER_LEVEL);
+
+            movesList.innerHTML = '';
+            if (moves.length === 0) {
+                movesList.innerHTML = '<p style="color: #999;">Keine Attacken auf Level 5</p>';
+            } else {
+                moves.forEach(move => {
+                    const moveEl = document.createElement('div');
+                    moveEl.style.cssText = 'padding: 8px; margin: 5px 0; background: #f5f5f5; border-radius: 4px; font-size: 12px;';
+                    moveEl.innerHTML = `
+                        <strong>${move.name}</strong> (${move.type}) - 
+                        <span style="color: #666;">Kraft: ${move.power || '-'} | Genauigkeit: ${move.accuracy}%</span>
+                    `;
+                    movesList.appendChild(moveEl);
+                });
+            }
+        } catch (error) {
+            console.error('Fehler beim Laden der Attacken:', error);
+            movesList.innerHTML = '<p style="color: #999;">Fehler beim Laden</p>';
+        }
+
+        // Zeige Modal
+        modal.classList.add('active');
+
+        // Close-Button für außerhalb des Modals
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                this.closeInventoryDetail();
+            }
+        });
+    }
+
+    closeInventoryDetail() {
+        const modal = document.getElementById('inventoryModal');
         modal.classList.remove('active');
     }
 

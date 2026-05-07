@@ -24,6 +24,20 @@ class Auth {
                     return;
                 }
 
+                // Prüfe ob Player bereits ein Pokémon hat
+                const { data: pokemonData } = await sbClient
+                    .from('player_pokemon')
+                    .select('id')
+                    .eq('player_id', this.currentUser.id)
+                    .limit(1);
+
+                // Wenn kein Pokémon, zeige Starter-Wahl
+                if (!pokemonData || pokemonData.length === 0) {
+                    await this.loadPlayerData();
+                    ui.showStarterScreen();
+                    return;
+                }
+
                 await this.loadPlayerData();
                 ui.showGameScreen();
             } else {

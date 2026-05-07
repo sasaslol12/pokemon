@@ -108,6 +108,39 @@ class PokemonService {
         const ballMultiplier = pokeballs === 'greatball' ? 1.5 : pokeballs === 'ultraball' ? 2 : 1;
         return Math.min(0.9, hpFactor * ballMultiplier);
     }
+
+    async getMovesAtLevel(pokemonName, level = 5) {
+        try {
+            const response = await axios.get(`${POKEAPI_URL}/pokemon/${pokemonName}`);
+            const data = response.data;
+
+            // Filtere Moves die auf diesem Level gelernt werden
+            const movesAtLevel = [];
+
+            for (let moveData of data.moves) {
+                for (let versionDetail of moveData.version_group_details) {
+                    // Nur Moves die durch "level-up" gelernt werden
+                    if (versionDetail.move_learn_method.name === 'level-up' &&
+                        versionDetail.level_learned_at <= level) {
+                        movesAtLevel.push({
+                            name: moveData.move.name,
+                            learnLevel: versionDetail.level_learned_at,
+                        });
+                    }
+                }
+            }
+
+            // Sortiere nach Learn-Level absteigend und nimm die neuesten
+            movesAtLevel.sort((a, b) => b.learnLevel - a.learnLevel);
+            const selectedMoves = movesAtLevel.slice(0, 4).map(m => m.name);
+
+            // Hol die vollen Move-Details
+            return await this.getMovesDetails(selectedMoves);
+        } catch (error) {
+            console.error('Failed to get moves at level:', error);
+            return [];
+        }
+    }
 }
 
 const pokemonService = new PokemonService();

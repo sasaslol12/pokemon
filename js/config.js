@@ -11,7 +11,29 @@ const POKEAPI_URL = 'https://pokeapi.co/api/v2';
 
 // Game Constants
 const GAME_CONFIG = {
-    STARTING_POKEMON: ['bulbasaur', 'charmander', 'squirtle'],
+    STARTER_POKEMON: [
+        // Gen 1
+        { name: 'bulbasaur', gen: 1 },
+        { name: 'charmander', gen: 1 },
+        { name: 'squirtle', gen: 1 },
+        // Gen 2
+        { name: 'chikorita', gen: 2 },
+        { name: 'cyndaquil', gen: 2 },
+        { name: 'totodile', gen: 2 },
+        // Gen 3
+        { name: 'treecko', gen: 3 },
+        { name: 'torchic', gen: 3 },
+        { name: 'mudkip', gen: 3 },
+        // Gen 4
+        { name: 'turtwig', gen: 4 },
+        { name: 'chimchar', gen: 4 },
+        { name: 'piplup', gen: 4 },
+        // Gen 5
+        { name: 'snivy', gen: 5 },
+        { name: 'tepig', gen: 5 },
+        { name: 'oshawott', gen: 5 },
+    ],
+    STARTER_LEVEL: 5,
     MAX_POKEMON_IN_TEAM: 6,
     MAX_LEVEL: 100,
     XP_PER_LEVEL: 1000,
