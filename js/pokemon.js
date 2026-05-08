@@ -12,12 +12,25 @@ class PokemonService {
         }
 
         try {
-            const response = await axios.get(`${POKEAPI_URL}/pokemon/${nameOrId}`);
+            // Konvertiere deutschen Namen zu englisch wenn nötig
+            let englishName = nameOrId;
+            for (let [en, de] of Object.entries(POKEMON_NAMES_DE)) {
+                if (de.toLowerCase() === nameOrId.toLowerCase()) {
+                    englishName = en;
+                    break;
+                }
+            }
+
+            const response = await axios.get(`${POKEAPI_URL}/pokemon/${englishName}`);
             const data = response.data;
+
+            // Deutscher Name oder englischer
+            const germanName = POKEMON_NAMES_DE[data.name] || data.name;
 
             const pokemon = {
                 id: data.id,
-                name: data.name,
+                name: germanName,
+                englishName: data.name,
                 types: data.types.map(t => t.type.name),
                 height: data.height,
                 weight: data.weight,
@@ -52,11 +65,16 @@ class PokemonService {
             try {
                 const response = await axios.get(`${POKEAPI_URL}/move/${moveName}`);
                 const data = response.data;
+
+                const germanMoveName = MOVE_NAMES_DE[data.name] || data.name;
+
                 moves.push({
-                    name: data.name,
+                    name: germanMoveName,
+                    englishName: data.name,
                     power: data.power || 0,
                     accuracy: data.accuracy || 100,
                     type: data.type.name,
+                    germanType: TYPE_NAMES_DE[data.type.name] || data.type.name,
                     category: data.damage_class.name,
                     effect: data.effect_entries[0]?.effect || 'No description',
                 });
@@ -111,28 +129,64 @@ class PokemonService {
 
     async getMovesAtLevel(pokemonName, level = 5) {
         try {
-            const response = await axios.get(`${POKEAPI_URL}/pokemon/${pokemonName}`);
+            // Konvertiere deutschen Namen zu englisch wenn nötig
+            let englishName = pokemonName;
+            for (let [en, de] of Object.entries(POKEMON_NAMES_DE)) {
+                if (de.toLowerCase() === pokemonName.toLowerCase()) {
+                    englishName = en;
+                    break;
+                }
+            }
+
+            const response = await axios.get(`${POKEAPI_URL}/pokemon/${englishName}`);
             const data = response.data;
 
             // Filtere Moves die auf diesem Level gelernt werden
-            const movesAtLevel = [];
+            const movesByName = {}; // Map um Duplikate zu vermeiden
 
             for (let moveData of data.moves) {
                 for (let versionDetail of moveData.version_group_details) {
                     // Nur Moves die durch "level-up" gelernt werden
                     if (versionDetail.move_learn_method.name === 'level-up' &&
                         versionDetail.level_learned_at <= level) {
-                        movesAtLevel.push({
-                            name: moveData.move.name,
-                            learnLevel: versionDetail.level_learned_at,
-                        });
+                        const moveName = moveData.move.name;
+
+                        // Speichere nur das höchste Level für diesen Move (falls in mehreren Versionen)
+                        if (!movesByName[moveName] || versionDetail.level_learned_at > movesByName[moveName].learnLevel) {
+                            movesByName[moveName] = {
+                                name: moveName,
+                                learnLevel: versionDetail.level_learned_at,
+                            };
+                        }
                     }
                 }
             }
 
-            // Sortiere nach Learn-Level absteigend und nimm die neuesten
+            // Konvertiere Map zu Array und sortiere
+            const movesAtLevel = Object.values(movesByName);
             movesAtLevel.sort((a, b) => b.learnLevel - a.learnLevel);
+
+            // Nimm die 4 neuesten Moves
             const selectedMoves = movesAtLevel.slice(0, 4).map(m => m.name);
+
+            // Wenn weniger als 4 Moves, füge auch Egg-Moves oder TM-Moves hinzu
+            if (selectedMoves.length < 4) {
+                for (let moveData of data.moves) {
+                    if (selectedMoves.length >= 4) break;
+
+                    for (let versionDetail of moveData.version_group_details) {
+                        if (selectedMoves.length >= 4) break;
+
+                        // Egg-Moves und TM-Moves als Fallback
+                        if ((versionDetail.move_learn_method.name === 'egg' ||
+                            versionDetail.move_learn_method.name === 'machine') &&
+                            !selectedMoves.includes(moveData.move.name)) {
+                            selectedMoves.push(moveData.move.name);
+                            break;
+                        }
+                    }
+                }
+            }
 
             // Hol die vollen Move-Details
             return await this.getMovesDetails(selectedMoves);

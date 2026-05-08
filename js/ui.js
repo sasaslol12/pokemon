@@ -224,7 +224,8 @@ class UI {
                 btn.disabled = true;
                 btn.textContent = '...';
 
-                const success = await inventory.addPokemonToTeam(starter.name, GAME_CONFIG.STARTER_LEVEL);
+                // Verwende englischen Namen für Datenbankabfrage
+                const success = await inventory.addPokemonToTeam(starter.englishName, GAME_CONFIG.STARTER_LEVEL);
 
                 if (success) {
                     ui.showSuccessMessage('Starter-Pokémon gewählt!');
@@ -326,7 +327,7 @@ class UI {
                                 <div class="detail-stat-value" id="statSpDef">-</div>
                             </div>
                             <div class="detail-stat">
-                                <div class="detail-stat-label">Speed</div>
+                                <div class="detail-stat-label">Initiative</div>
                                 <div class="detail-stat-value" id="statSpeed">-</div>
                             </div>
                         </div>
@@ -378,7 +379,7 @@ class UI {
                                 <div class="detail-stat-value" id="invStatSpDef">-</div>
                             </div>
                             <div class="detail-stat">
-                                <div class="detail-stat-label">Speed</div>
+                                <div class="detail-stat-label">Initiative</div>
                                 <div class="detail-stat-value" id="invStatSpeed">-</div>
                             </div>
                         </div>
@@ -428,7 +429,7 @@ class UI {
                 const pokemonData = await pokemonService.getPokemon(pokemon.name);
 
                 const types = pokemonData.types.map(t =>
-                    `<div class="type-badge ${t}">${t}</div>`
+                    `<div class="type-badge ${t}">${TYPE_NAMES_DE[t] || t}</div>`
                 ).join('');
 
                 const card = document.createElement('div');
@@ -553,7 +554,8 @@ class UI {
         // Lade Moves für Level 5
         const movesList = document.getElementById('invMovesList');
         try {
-            const moves = await pokemonService.getMovesAtLevel(pokemon.name, GAME_CONFIG.STARTER_LEVEL);
+            // Verwende englischen Namen für API-Abfrage
+            const moves = await pokemonService.getMovesAtLevel(pokemon.englishName || pokemon.name, GAME_CONFIG.STARTER_LEVEL);
 
             movesList.innerHTML = '';
             if (moves.length === 0) {
@@ -563,7 +565,7 @@ class UI {
                     const moveEl = document.createElement('div');
                     moveEl.style.cssText = 'padding: 8px; margin: 5px 0; background: #f5f5f5; border-radius: 4px; font-size: 12px;';
                     moveEl.innerHTML = `
-                        <strong>${move.name}</strong> (${move.type}) - 
+                        <strong>${move.name}</strong> (${move.germanType || move.type}) - 
                         <span style="color: #666;">Kraft: ${move.power || '-'} | Genauigkeit: ${move.accuracy}%</span>
                     `;
                     movesList.appendChild(moveEl);
