@@ -12,25 +12,12 @@ class PokemonService {
         }
 
         try {
-            // Konvertiere deutschen Namen zu englisch wenn nötig
-            let englishName = nameOrId;
-            for (let [en, de] of Object.entries(POKEMON_NAMES_DE)) {
-                if (de.toLowerCase() === nameOrId.toLowerCase()) {
-                    englishName = en;
-                    break;
-                }
-            }
-
-            const response = await axios.get(`${POKEAPI_URL}/pokemon/${englishName}`);
+            const response = await axios.get(`${POKEAPI_URL}/pokemon/${nameOrId}`);
             const data = response.data;
-
-            // Deutscher Name oder englischer
-            const germanName = POKEMON_NAMES_DE[data.name] || data.name;
 
             const pokemon = {
                 id: data.id,
-                name: germanName,
-                englishName: data.name,
+                name: data.name,
                 types: data.types.map(t => t.type.name),
                 height: data.height,
                 weight: data.weight,
@@ -66,15 +53,11 @@ class PokemonService {
                 const response = await axios.get(`${POKEAPI_URL}/move/${moveName}`);
                 const data = response.data;
 
-                const germanMoveName = MOVE_NAMES_DE[data.name] || data.name;
-
                 moves.push({
-                    name: germanMoveName,
-                    englishName: data.name,
+                    name: data.name,
                     power: data.power || 0,
                     accuracy: data.accuracy || 100,
                     type: data.type.name,
-                    germanType: TYPE_NAMES_DE[data.type.name] || data.type.name,
                     category: data.damage_class.name,
                     effect: data.effect_entries[0]?.effect || 'No description',
                 });
@@ -129,16 +112,7 @@ class PokemonService {
 
     async getMovesAtLevel(pokemonName, level = 5) {
         try {
-            // Konvertiere deutschen Namen zu englisch wenn nötig
-            let englishName = pokemonName;
-            for (let [en, de] of Object.entries(POKEMON_NAMES_DE)) {
-                if (de.toLowerCase() === pokemonName.toLowerCase()) {
-                    englishName = en;
-                    break;
-                }
-            }
-
-            const response = await axios.get(`${POKEAPI_URL}/pokemon/${englishName}`);
+            const response = await axios.get(`${POKEAPI_URL}/pokemon/${pokemonName}`);
             const data = response.data;
 
             // Filtere Moves die auf diesem Level gelernt werden

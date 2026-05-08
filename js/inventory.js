@@ -10,6 +10,7 @@ class Inventory {
             antidotes: 0,
         };
         this.playerTeam = [];
+        this.activeTeam = [null, null, null, null, null, null]; // 6 Slots für Kampf-Team
         this.pokedex = [];
     }
 

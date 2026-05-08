@@ -625,3 +625,65 @@ button {
     image-rendering: pixelated;
     image-rendering: crisp-edges;
 }
+
+/* ===== Team Setup Screen ===== */
+.team-setup-screen {
+    background: white;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.team-setup-screen .header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 20px 0;
+    border-bottom: 2px solid #eee;
+}
+
+.team-setup-screen h1 {
+    color: #FF6347;
+    font-size: 28px;
+    margin-bottom: 10px;
+}
+
+.team-setup-screen p {
+    color: #666;
+    font-size: 14px;
+}
+
+.team-slots h3,
+.inventory-select h3 {
+    color: #333;
+    font-size: 18px;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #FF6347;
+    padding-bottom: 10px;
+}
+
+.team-slot {
+    cursor: grab;
+    user-select: none;
+}
+
+.team-slot:hover {
+    border-color: #999 !important;
+}
+
+.team-slot:active {
+    cursor: grabbing;
+}
+
+.team-pokemon-card {
+    user-select: none;
+}
+
+.team-pokemon-card:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-color: #FF6347 !important;
+}
+
+@media (max-width: 768px) {
+    .team-setup-screen>div>div {
+        grid-template-columns: 1fr !important;
+    }
+}

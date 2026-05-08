@@ -11,35 +11,12 @@ class UI {
         this.app.innerHTML = `
             <div class="auth-screen">
                 <h1>⚡ Pokémon Browser</h1>
-                <p>Melde dich an oder erstelle einen Account</p>
+                <p>Login with Google to play</p>
                 
-                <div id="authForm">
-                    <div class="form-group">
-                        <label>E-Mail</label>
-                        <input type="email" id="email" placeholder="deine@email.com">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Passwort</label>
-                        <input type="password" id="password" placeholder="••••••••">
-                    </div>
-                    
-                    <div id="usernameGroup" class="form-group" style="display:none;">
-                        <label>Benutzername</label>
-                        <input type="text" id="username" placeholder="Dein Trainer Name">
-                    </div>
-                    
-                    <div class="button-group">
-                        <button class="btn-primary" onclick="ui.handleLogin()">Anmelden</button>
-                        <button class="btn-secondary" onclick="ui.toggleSignup()">Registrieren</button>
-                    </div>
-
-                    <div style="margin-top: 20px; border-top: 1px solid #e0e0e0; padding-top: 20px;">
-                        <p style="text-align: center; color: #999; margin-bottom: 10px; font-size: 14px;">oder</p>
-                        <button class="btn-secondary" onclick="auth.loginWithGoogle()" style="background: white; border: 2px solid #4285F4; color: #4285F4; font-weight: 600;">
-                            🔐 Mit Google anmelden
-                        </button>
-                    </div>
+                <div style="margin-top: 50px; text-align: center;">
+                    <button class="btn-secondary" onclick="auth.loginWithGoogle()" style="background: white; border: 2px solid #4285F4; color: #4285F4; font-weight: 600; padding: 15px 30px; font-size: 16px; width: 100%; max-width: 300px;">
+                        🔐 Sign in with Google
+                    </button>
                 </div>
             </div>
         `;
@@ -230,7 +207,7 @@ class UI {
                 if (success) {
                     ui.showSuccessMessage('Starter-Pokémon gewählt!');
                     await new Promise(resolve => setTimeout(resolve, 1500));
-                    ui.showGameScreen();
+                    ui.showTeamSetupScreen();
                 } else {
                     btn.disabled = false;
                     btn.textContent = 'Wählen';
@@ -243,6 +220,180 @@ class UI {
 
     async selectStarter(starterName) {
         // Diese Methode wird nicht mehr verwendet
+    }
+
+    async showTeamSetupScreen() {
+        this.currentScreen = 'teamSetup';
+
+        this.app.innerHTML = `
+            <div class="team-setup-screen">
+                <div class="header">
+                    <h1>🎯 Stelle dein Team zusammen</h1>
+                    <p>Ziehe Pokémon in die 6 Team-Slots</p>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 20px; max-width: 1200px; margin: 0 auto;">
+                    <!-- Team Slots -->
+                    <div class="team-slots">
+                        <h3>👥 Dein Team</h3>
+                        <div id="teamSlotsContainer" style="display: grid; grid-template-columns: 1fr; gap: 10px;">
+                            ${Array.from({ length: 6 }, (_, i) => `
+                                <div class="team-slot" data-slot="${i}" draggable="false" style="
+                                    border: 2px dashed #ccc;
+                                    border-radius: 8px;
+                                    padding: 12px;
+                                    min-height: 60px;
+                                    background: #f9f9f9;
+                                    cursor: pointer;
+                                    transition: all 0.2s;
+                                ">
+                                    <div style="color: #999; font-size: 12px;">Slot ${i + 1}</div>
+                                    <div id="slot-${i}-content" style="font-weight: bold; margin-top: 5px;"></div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <button class="btn-primary" style="width: 100%; margin-top: 20px; padding: 12px;" onclick="ui.startBattle()">
+                            ⚔️ Kampf beginnen
+                        </button>
+                    </div>
+
+                    <!-- Pokemon Inventar -->
+                    <div class="inventory-select">
+                        <h3>📦 Verfügbare Pokémon</h3>
+                        <div id="inventoryListContainer" style="
+                            display: grid;
+                            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+                            gap: 10px;
+                            max-height: 600px;
+                            overflow-y: auto;
+                            padding: 10px;
+                            background: #f0f0f0;
+                            border-radius: 8px;
+                        ">
+                            <!-- Pokemon werden hier eingefügt -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        await this.loadTeamSetupInventory();
+        this.setupTeamDragDrop();
+    }
+
+    async loadTeamSetupInventory() {
+        const container = document.getElementById('inventoryListContainer');
+        container.innerHTML = '';
+
+        await inventory.loadPlayerTeam();
+        const team = inventory.playerTeam;
+
+        if (team.length === 0) {
+            container.innerHTML = '<p style="grid-column: 1/-1; color: #999;">Keine Pokémon verfügbar</p>';
+            return;
+        }
+
+        for (let pokemon of team) {
+            const card = document.createElement('div');
+            card.className = 'team-pokemon-card';
+            card.draggable = true;
+            card.dataset.pokemonId = pokemon.id;
+            card.dataset.pokemonName = pokemon.name;
+            card.innerHTML = `
+                <img src="${pokemon.sprite}" alt="${pokemon.name}" style="width: 80px; height: 80px; image-rendering: pixelated;">
+                <div style="font-size: 11px; font-weight: bold; text-align: center; margin-top: 5px;">${pokemon.name}</div>
+                <div style="font-size: 10px; color: #666; text-align: center;">Lv.${pokemon.level}</div>
+            `;
+
+            card.style.cursor = 'grab';
+            card.style.padding = '8px';
+            card.style.background = 'white';
+            card.style.borderRadius = '6px';
+            card.style.textAlign = 'center';
+            card.style.border = '1px solid #ddd';
+            card.style.transition = 'all 0.2s';
+
+            card.addEventListener('dragstart', (e) => {
+                e.dataTransfer.effectAllowed = 'copy';
+                e.dataTransfer.setData('pokemonId', pokemon.id);
+                e.dataTransfer.setData('pokemonName', pokemon.name);
+                e.dataTransfer.setData('pokemonSprite', pokemon.sprite);
+                e.dataTransfer.setData('pokemonLevel', pokemon.level);
+                card.style.opacity = '0.6';
+            });
+
+            card.addEventListener('dragend', (e) => {
+                card.style.opacity = '1';
+            });
+
+            container.appendChild(card);
+        }
+    }
+
+    setupTeamDragDrop() {
+        const slots = document.querySelectorAll('.team-slot');
+
+        slots.forEach(slot => {
+            slot.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'copy';
+                slot.style.borderColor = '#FF6347';
+                slot.style.background = '#ffe6e6';
+            });
+
+            slot.addEventListener('dragleave', (e) => {
+                slot.style.borderColor = '#ccc';
+                slot.style.background = '#f9f9f9';
+            });
+
+            slot.addEventListener('drop', (e) => {
+                e.preventDefault();
+                slot.style.borderColor = '#ccc';
+                slot.style.background = '#f9f9f9';
+
+                const pokemonId = e.dataTransfer.getData('pokemonId');
+                const pokemonName = e.dataTransfer.getData('pokemonName');
+                const pokemonSprite = e.dataTransfer.getData('pokemonSprite');
+                const pokemonLevel = e.dataTransfer.getData('pokemonLevel');
+
+                const slotIndex = slot.dataset.slot;
+
+                // Speichere in activeTeam
+                const pokemon = inventory.playerTeam.find(p => p.id === pokemonId);
+                if (pokemon) {
+                    inventory.activeTeam[slotIndex] = pokemon;
+
+                    // Update UI
+                    const contentDiv = document.getElementById(`slot-${slotIndex}-content`);
+                    contentDiv.innerHTML = `
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <img src="${pokemonSprite}" alt="${pokemonName}" style="width: 40px; height: 40px; image-rendering: pixelated;">
+                            <div>
+                                <div>${pokemonName}</div>
+                                <div style="font-size: 11px; color: #666;">Level ${pokemonLevel}</div>
+                            </div>
+                        </div>
+                    `;
+
+                    slot.style.borderColor = '#4CAF50';
+                    slot.style.background = '#e8f5e9';
+                    slot.style.borderStyle = 'solid';
+                }
+            });
+        });
+    }
+
+    startBattle() {
+        // Prüfe ob mindestens 1 Pokémon im Team
+        const teamCount = inventory.activeTeam.filter(p => p !== null).length;
+        if (teamCount === 0) {
+            this.showErrorMessage('Du brauchst mindestens 1 Pokémon!');
+            return;
+        }
+
+        this.showSuccessMessage(`Team mit ${teamCount} Pokémon bereit!`);
+        // Kampf wird später implementiert
+        console.log('Aktives Team:', inventory.activeTeam);
     }
 
     showGameScreen() {
@@ -429,7 +580,7 @@ class UI {
                 const pokemonData = await pokemonService.getPokemon(pokemon.name);
 
                 const types = pokemonData.types.map(t =>
-                    `<div class="type-badge ${t}">${TYPE_NAMES_DE[t] || t}</div>`
+                    `<div class="type-badge ${t}">${t}</div>`
                 ).join('');
 
                 const card = document.createElement('div');
@@ -565,8 +716,8 @@ class UI {
                     const moveEl = document.createElement('div');
                     moveEl.style.cssText = 'padding: 8px; margin: 5px 0; background: #f5f5f5; border-radius: 4px; font-size: 12px;';
                     moveEl.innerHTML = `
-                        <strong>${move.name}</strong> (${move.germanType || move.type}) - 
-                        <span style="color: #666;">Kraft: ${move.power || '-'} | Genauigkeit: ${move.accuracy}%</span>
+                        <strong>${move.name}</strong> (${move.type}) - 
+                        <span style="color: #666;">Power: ${move.power || '-'} | Accuracy: ${move.accuracy}%</span>
                     `;
                     movesList.appendChild(moveEl);
                 });
