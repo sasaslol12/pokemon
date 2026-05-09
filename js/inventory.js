@@ -53,7 +53,7 @@ class Inventory {
 
     async addPokemonToTeam(pokemonName, level = 5) {
         if (this.playerTeam.length >= GAME_CONFIG.MAX_POKEMON_IN_TEAM) {
-            ui.showErrorMessage('Dein Team ist voll!');
+            ui.showErrorMessage('Your team is full!');
             return false;
         }
 
@@ -113,11 +113,11 @@ class Inventory {
             this.playerTeam.push(newPokemon);
             localStorage.setItem(STORAGE_KEYS.TEAM, JSON.stringify(this.playerTeam));
 
-            ui.showSuccessMessage(`${pokemonName} wurde deinem Team hinzugefügt!`);
+            ui.showSuccessMessage(`${pokemonName} added to your team!`);
             return true;
         } catch (error) {
             console.error('Failed to add pokemon to team:', error);
-            ui.showErrorMessage('Fehler beim Hinzufügen von Pokémon');
+            ui.showErrorMessage('Error adding Pokémon');
             return false;
         }
     }

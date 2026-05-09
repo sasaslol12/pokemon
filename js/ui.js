@@ -156,8 +156,8 @@ class UI {
         this.currentScreen = 'starter';
         this.app.innerHTML = `
             <div class="auth-screen">
-                <h1>🎮 Wähle dein Starter-Pokémon</h1>
-                <p>Dies wird dein erstes Pokémon auf Level 5</p>
+                <h1>🎮 Choose Your Starter Pokémon</h1>
+                <p>This will be your first Pokémon at Level 5</p>
                 
                 <div id="starterGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; margin-top: 25px;">
                     <!-- Starters werden hier eingefügt -->
@@ -192,7 +192,7 @@ class UI {
                 <div style="font-size: 11px; color: #999;">Gen ${starter.gen}</div>
                 <img src="${pokemonData.sprite}" alt="${pokemonData.name}" class="pokemon-sprite">
                 <h3 style="margin: 8px 0;">${pokemonData.name}</h3>
-                <button class="btn-primary" style="width: 100%; padding: 8px; font-size: 12px;">Wählen</button>
+                <button class="btn-primary" style="width: 100%; padding: 8px; font-size: 12px;">Choose</button>
             `;
 
             card.querySelector('button').addEventListener('click', async (e) => {
@@ -202,15 +202,15 @@ class UI {
                 btn.textContent = '...';
 
                 // Verwende englischen Namen für Datenbankabfrage
-                const success = await inventory.addPokemonToTeam(starter.englishName, GAME_CONFIG.STARTER_LEVEL);
+                const success = await inventory.addPokemonToTeam(starter.name, GAME_CONFIG.STARTER_LEVEL);
 
                 if (success) {
-                    ui.showSuccessMessage('Starter-Pokémon gewählt!');
+                    ui.showSuccessMessage('Starter Pokémon chosen!');
                     await new Promise(resolve => setTimeout(resolve, 1500));
                     ui.showTeamSetupScreen();
                 } else {
                     btn.disabled = false;
-                    btn.textContent = 'Wählen';
+                    btn.textContent = 'Choose';
                 }
             });
 
@@ -228,14 +228,14 @@ class UI {
         this.app.innerHTML = `
             <div class="team-setup-screen">
                 <div class="header">
-                    <h1>🎯 Stelle dein Team zusammen</h1>
-                    <p>Ziehe Pokémon in die 6 Team-Slots</p>
+                    <h1>🎯 Set Up Your Team</h1>
+                    <p>Drag Pokémon into the 6 team slots</p>
                 </div>
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 20px; max-width: 1200px; margin: 0 auto;">
                     <!-- Team Slots -->
                     <div class="team-slots">
-                        <h3>👥 Dein Team</h3>
+                        <h3>👥 Your Team</h3>
                         <div id="teamSlotsContainer" style="display: grid; grid-template-columns: 1fr; gap: 10px;">
                             ${Array.from({ length: 6 }, (_, i) => `
                                 <div class="team-slot" data-slot="${i}" draggable="false" style="
@@ -253,13 +253,13 @@ class UI {
                             `).join('')}
                         </div>
                         <button class="btn-primary" style="width: 100%; margin-top: 20px; padding: 12px;" onclick="ui.startBattle()">
-                            ⚔️ Kampf beginnen
+                            ⚔️ Start Battle
                         </button>
                     </div>
 
                     <!-- Pokemon Inventar -->
                     <div class="inventory-select">
-                        <h3>📦 Verfügbare Pokémon</h3>
+                        <h3>📦 Available Pokémon</h3>
                         <div id="inventoryListContainer" style="
                             display: grid;
                             grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
@@ -387,13 +387,13 @@ class UI {
         // Prüfe ob mindestens 1 Pokémon im Team
         const teamCount = inventory.activeTeam.filter(p => p !== null).length;
         if (teamCount === 0) {
-            this.showErrorMessage('Du brauchst mindestens 1 Pokémon!');
+            this.showErrorMessage('You need at least 1 Pokémon!');
             return;
         }
 
-        this.showSuccessMessage(`Team mit ${teamCount} Pokémon bereit!`);
+        this.showSuccessMessage(`Team with ${teamCount} Pokémon ready!`);
         // Kampf wird später implementiert
-        console.log('Aktives Team:', inventory.activeTeam);
+        console.log('Active Team:', inventory.activeTeam);
     }
 
     showGameScreen() {
@@ -403,16 +403,16 @@ class UI {
         this.app.innerHTML = `
             <div class="game-screen">
                 <div class="header">
-                    <h1>⚡ Pokémon Sammler</h1>
+                    <h1>⚡ Pokémon Collector</h1>
                     <div class="user-info">
                         <span>👤 ${playerData?.username || 'Trainer'}</span>
-                        <button class="logout-btn" onclick="auth.logout()">Abmelden</button>
+                        <button class="logout-btn" onclick="auth.logout()">Sign Out</button>
                     </div>
                 </div>
 
                 <div class="tabs" style="display: flex; gap: 0; border-bottom: 2px solid #ddd; margin: 20px 20px 0;">
                     <button id="tab-pokedex" class="tab-btn" style="padding: 12px 20px; border: none; background: none; cursor: pointer; font-size: 16px; color: #666; border-bottom: 3px solid transparent; margin-bottom: -2px;" onclick="ui.switchTab('pokedex')">📖 Pokédex</button>
-                    <button id="tab-inventory" class="tab-btn" style="padding: 12px 20px; border: none; background: none; cursor: pointer; font-size: 16px; color: #666; border-bottom: 3px solid transparent; margin-bottom: -2px;" onclick="ui.switchTab('inventory')">🎒 Inventar</button>
+                    <button id="tab-inventory" class="tab-btn" style="padding: 12px 20px; border: none; background: none; cursor: pointer; font-size: 16px; color: #666; border-bottom: 3px solid transparent; margin-bottom: -2px;" onclick="ui.switchTab('inventory')">🎒 Inventory</button>
                 </div>
 
                 <!-- Pokédex Tab -->
@@ -432,7 +432,7 @@ class UI {
                     <div id="inventory-list" class="pokedex-grid">
                         <div class="loading">
                             <div class="spinner"></div>
-                            <p>Team wird geladen...</p>
+                            <p>Loading team...</p>
                         </div>
                     </div>
                 </div>
@@ -462,11 +462,11 @@ class UI {
                                 <div class="detail-stat-value" id="statHP">-</div>
                             </div>
                             <div class="detail-stat">
-                                <div class="detail-stat-label">Angriff</div>
+                                <div class="detail-stat-label">Attack</div>
                                 <div class="detail-stat-value" id="statAttack">-</div>
                             </div>
                             <div class="detail-stat">
-                                <div class="detail-stat-label">Verteidigung</div>
+                                <div class="detail-stat-label">Defense</div>
                                 <div class="detail-stat-value" id="statDefense">-</div>
                             </div>
                             <div class="detail-stat">
@@ -478,7 +478,7 @@ class UI {
                                 <div class="detail-stat-value" id="statSpDef">-</div>
                             </div>
                             <div class="detail-stat">
-                                <div class="detail-stat-label">Initiative</div>
+                                <div class="detail-stat-label">Speed</div>
                                 <div class="detail-stat-value" id="statSpeed">-</div>
                             </div>
                         </div>
@@ -499,9 +499,9 @@ class UI {
                             </div>
                             <div style="flex: 1;">
                                 <p style="margin: 0 0 5px 0;"><strong>Level</strong>: <span id="invLevel">-</span></p>
-                                <p style="margin: 0 0 10px 0;"><strong>Gefangen am:</strong> <span id="invCaughtDate">-</span></p>
+                                <p style="margin: 0 0 10px 0;"><strong>Caught on:</strong> <span id="invCaughtDate">-</span></p>
                                 
-                                <h4>Attacken (Level 5):</h4>
+                                <h4>Moves (Level 5):</h4>
                                 <div id="invMovesList" style="list-style: none; padding: 0; margin: 0;">
                                     <div class="loading"><div class="spinner"></div></div>
                                 </div>
@@ -514,11 +514,11 @@ class UI {
                                 <div class="detail-stat-value" id="invStatHP">-</div>
                             </div>
                             <div class="detail-stat">
-                                <div class="detail-stat-label">Angriff</div>
+                                <div class="detail-stat-label">Attack</div>
                                 <div class="detail-stat-value" id="invStatAttack">-</div>
                             </div>
                             <div class="detail-stat">
-                                <div class="detail-stat-label">Verteidigung</div>
+                                <div class="detail-stat-label">Defense</div>
                                 <div class="detail-stat-value" id="invStatDefense">-</div>
                             </div>
                             <div class="detail-stat">
@@ -530,7 +530,7 @@ class UI {
                                 <div class="detail-stat-value" id="invStatSpDef">-</div>
                             </div>
                             <div class="detail-stat">
-                                <div class="detail-stat-label">Initiative</div>
+                                <div class="detail-stat-label">Speed</div>
                                 <div class="detail-stat-value" id="invStatSpeed">-</div>
                             </div>
                         </div>
@@ -605,8 +605,8 @@ class UI {
                 container.appendChild(card);
             }
         } catch (error) {
-            console.error('Fehler beim Laden der Pokédex:', error);
-            container.innerHTML = '<div class="empty-message">Fehler beim Laden der Pokémon!</div>';
+            console.error('Error loading Pokedex:', error);
+            container.innerHTML = '<div class="empty-message">Error loading Pokémon!</div>';
         }
     }
 
@@ -652,7 +652,7 @@ class UI {
             container.innerHTML = '';
 
             if (team.length === 0) {
-                container.innerHTML = '<div class="empty-message" style="grid-column: 1/-1; text-align: center; padding: 40px 20px;">Du hast noch kein Pokémon!</div>';
+                container.innerHTML = '<div class="empty-message" style="grid-column: 1/-1; text-align: center; padding: 40px 20px;">You have no Pokémon yet!</div>';
                 return;
             }
 
@@ -676,8 +676,8 @@ class UI {
                 container.appendChild(card);
             }
         } catch (error) {
-            console.error('Fehler beim Laden des Inventars:', error);
-            container.innerHTML = '<div class="empty-message">Fehler beim Laden!</div>';
+            console.error('Error loading inventory:', error);
+            container.innerHTML = '<div class="empty-message">Error loading!</div>';
         }
     }
 
@@ -706,11 +706,11 @@ class UI {
         const movesList = document.getElementById('invMovesList');
         try {
             // Verwende englischen Namen für API-Abfrage
-            const moves = await pokemonService.getMovesAtLevel(pokemon.englishName || pokemon.name, GAME_CONFIG.STARTER_LEVEL);
+            const moves = await pokemonService.getMovesAtLevel(pokemon.name, GAME_CONFIG.STARTER_LEVEL);
 
             movesList.innerHTML = '';
             if (moves.length === 0) {
-                movesList.innerHTML = '<p style="color: #999;">Keine Attacken auf Level 5</p>';
+                movesList.innerHTML = '<p style="color: #999;">No moves at level 5</p>';
             } else {
                 moves.forEach(move => {
                     const moveEl = document.createElement('div');
@@ -723,8 +723,8 @@ class UI {
                 });
             }
         } catch (error) {
-            console.error('Fehler beim Laden der Attacken:', error);
-            movesList.innerHTML = '<p style="color: #999;">Fehler beim Laden</p>';
+            console.error('Error loading moves:', error);
+            movesList.innerHTML = '<p style="color: #999;">Error loading</p>';
         }
 
         // Zeige Modal
@@ -745,10 +745,10 @@ class UI {
 
     showTeamScreen() {
         const team = inventory.getTeam();
-        let content = '<h2>👥 Mein Team</h2>';
+        let content = '<h2>👥 My Team</h2>';
 
         if (team.length === 0) {
-            content += '<div class="empty-message">Du hast noch kein Pokémon! Begib dich zum Erkunden.</div>';
+            content += '<div class="empty-message">You have no Pokémon yet! Go explore.</div>';
         } else {
             content += '<div class="inventory-grid">';
             team.forEach(pokemon => {
@@ -787,12 +787,12 @@ class UI {
         }
 
         document.getElementById('content').innerHTML = content;
-        this.updateMenuActive('Mein Team');
+        this.updateMenuActive('My Team');
     }
 
     showPokedexScreen() {
-        let content = '<h2>📖 Pokédex</h2>';
-        content += `<p>Pokémon gefangen: ${inventory.pokedex.length}</p>`;
+        let content = '<h2>📖 Pokedex</h2>';
+        content += `<p>Pokémon caught: ${inventory.pokedex.length}</p>`;
         content += '<div class="inventory-grid">';
 
         inventory.pokedex.forEach(pokemon => {
@@ -806,12 +806,12 @@ class UI {
 
         content += '</div>';
         document.getElementById('content').innerHTML = content;
-        this.updateMenuActive('Pokédex');
+        this.updateMenuActive('Pokedex');
     }
 
     showInventoryScreen() {
         const inv = inventory.getInventory();
-        let content = '<h2>🎒 Inventar</h2>';
+        let content = '<h2>🎒 Inventory</h2>';
         content += '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px;">';
 
         for (const [item, quantity] of Object.entries(inv)) {
@@ -819,8 +819,8 @@ class UI {
                 content += `
                     <div class="pokemon-card">
                         <h4>${item.replace(/_/g, ' ')}</h4>
-                        <p>Menge: ${quantity}</p>
-                        <button class="btn-primary" style="margin-top: 10px;">Verwenden</button>
+                        <p>Quantity: ${quantity}</p>
+                        <button class="btn-primary" style="margin-top: 10px;">Use</button>
                     </div>
                 `;
             }
@@ -828,35 +828,35 @@ class UI {
 
         content += '</div>';
         document.getElementById('content').innerHTML = content;
-        this.updateMenuActive('Inventar');
+        this.updateMenuActive('Inventory');
     }
 
     showExploreScreen() {
         let content = `
-            <h2>🗺️ Erkunden</h2>
-            <p>Erkunde die Welt und finde Pokémon!</p>
+            <h2>🗺️ Explore</h2>
+            <p>Explore the world and find Pokémon!</p>
             <div style="margin-top: 20px;">
                 <button class="btn-primary" style="padding: 20px 40px; font-size: 18px;" onclick="game.searchWildPokemon()">
-                    Wildnis durchsuchen
+                    Search Wilderness
                 </button>
-                <p style="margin-top: 10px; color: #999;">Kosten: 1 Bewegungspunkt</p>
+                <p style="margin-top: 10px; color: #999;">Cost: 1 action point</p>
             </div>
         `;
         document.getElementById('content').innerHTML = content;
-        this.updateMenuActive('Erkunden');
+        this.updateMenuActive('Explore');
     }
 
     showStatsScreen() {
         const playerData = auth.getPlayerData();
         let content = `
-            <h2>📈 Statistiken</h2>
+            <h2>📈 Stats</h2>
             <div class="pokemon-stats">
                 <div class="stat">
-                    <div class="stat-label">Spieler Level</div>
+                    <div class="stat-label">Player Level</div>
                     <div class="stat-value">${playerData?.level || 1}</div>
                 </div>
                 <div class="stat">
-                    <div class="stat-label">Erfahrung</div>
+                    <div class="stat-label">Experience</div>
                     <div class="stat-value">${playerData?.exp || 0}</div>
                 </div>
                 <div class="stat">
@@ -864,13 +864,13 @@ class UI {
                     <div class="stat-value">${inventory.getTeam().length}</div>
                 </div>
                 <div class="stat">
-                    <div class="stat-label">Pokédex</div>
+                    <div class="stat-label">Pokedex</div>
                     <div class="stat-value">${inventory.pokedex.length}</div>
                 </div>
             </div>
         `;
         document.getElementById('content').innerHTML = content;
-        this.updateMenuActive('Statistiken');
+        this.updateMenuActive('Stats');
     }
 
     showBattleScreen(battle) {
@@ -879,7 +879,7 @@ class UI {
 
         let content = `
             <div class="battle-screen">
-                <h2>🔥 Pokémon Kampf!</h2>
+                <h2>🔥 Pokémon Battle!</h2>
                 
                 <div class="battle-arena">
                     <div class="pokemon-battle">

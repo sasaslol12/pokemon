@@ -75,11 +75,11 @@ class Auth {
 
             this.currentUser = data.user;
             await this.loadPlayerData();
-            ui.showSuccessMessage('Account erstellt! Willkommen!');
+            ui.showSuccessMessage('Account created! Welcome!');
             ui.showGameScreen();
             return true;
         } catch (error) {
-            ui.showErrorMessage('Signup fehlgeschlagen: ' + error.message);
+            ui.showErrorMessage('Signup failed: ' + error.message);
             return false;
         }
     }
@@ -95,11 +95,11 @@ class Auth {
 
             this.currentUser = data.user;
             await this.loadPlayerData();
-            ui.showSuccessMessage('Erfolgreich angemeldet!');
+            ui.showSuccessMessage('Successfully signed in!');
             ui.showGameScreen();
             return true;
         } catch (error) {
-            ui.showErrorMessage('Login fehlgeschlagen: ' + error.message);
+            ui.showErrorMessage('Login failed: ' + error.message);
             return false;
         }
     }
@@ -109,9 +109,9 @@ class Auth {
             await sbClient.auth.signOut();
             this.currentUser = null;
             ui.showAuthScreen();
-            ui.showSuccessMessage('Abgemeldet');
+            ui.showSuccessMessage('Signed out');
         } catch (error) {
-            ui.showErrorMessage('Logout fehlgeschlagen: ' + error.message);
+            ui.showErrorMessage('Logout failed: ' + error.message);
         }
     }
 
@@ -143,7 +143,7 @@ class Auth {
             });
             if (error) throw error;
         } catch (error) {
-            ui.showErrorMessage('Google Login fehlgeschlagen: ' + error.message);
+            ui.showErrorMessage('Google login failed: ' + error.message);
             console.error('Google OAuth Error:', error);
         }
     }
@@ -174,14 +174,14 @@ class Auth {
         try {
             // Validiere Format
             if (!this.validateUsername(username)) {
-                ui.showErrorMessage('Username: 3-14 Zeichen, nur Buchstaben & Zahlen');
+                ui.showErrorMessage('Username: 3-14 characters, letters & numbers only');
                 return false;
             }
 
             // Überprüfe ob Name verfügbar ist
             const available = await this.checkUsernameAvailable(username);
             if (!available) {
-                ui.showErrorMessage('Dieser Name ist bereits vergeben!');
+                ui.showErrorMessage('This username is already taken!');
                 return false;
             }
 
@@ -218,11 +218,11 @@ class Auth {
             }
 
             await this.loadPlayerData();
-            ui.showSuccessMessage(`Willkommen, ${username}!`);
+            ui.showSuccessMessage(`Welcome, ${username}!`);
             ui.showGameScreen();
             return true;
         } catch (error) {
-            ui.showErrorMessage('Fehler beim Speichern: ' + error.message);
+            ui.showErrorMessage('Error saving: ' + error.message);
             return false;
         }
     }
